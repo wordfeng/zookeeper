@@ -123,7 +123,7 @@ public class FileTxnSnapLog {
                         + " is false). Please create this directory manually.");
             }
 
-            if (!this.dataDir.mkdirs()) {
+            if (!this.dataDir.mkdirs() && !this.dataDir.exists()) {
                 throw new DatadirException("Unable to create data directory "
                         + this.dataDir);
             }
@@ -143,7 +143,7 @@ public class FileTxnSnapLog {
                         + " is false). Please create this directory manually.");
             }
 
-            if (!this.snapDir.mkdirs()) {
+            if (!this.snapDir.mkdirs() && !this.snapDir.exists()) {
                 throw new DatadirException("Unable to create snap directory "
                         + this.snapDir);
             }
@@ -414,23 +414,28 @@ public class FileTxnSnapLog {
      * @return true if able to truncate the log, false if not
      * @throws IOException
      */
-    public boolean truncateLog(long zxid) throws IOException {
-        // close the existing txnLog and snapLog
-        close();
+    public boolean truncateLog(long zxid) {
+        try {
+            // close the existing txnLog and snapLog
+            close();
 
-        // truncate it
-        FileTxnLog truncLog = new FileTxnLog(dataDir);
-        boolean truncated = truncLog.truncate(zxid);
-        truncLog.close();
+            // truncate it
+            try (FileTxnLog truncLog = new FileTxnLog(dataDir)) {
+                boolean truncated = truncLog.truncate(zxid);
 
-        // re-open the txnLog and snapLog
-        // I'd rather just close/reopen this object itself, however that 
-        // would have a big impact outside ZKDatabase as there are other
-        // objects holding a reference to this object.
-        txnLog = new FileTxnLog(dataDir);
-        snapLog = new FileSnap(snapDir);
+                // re-open the txnLog and snapLog
+                // I'd rather just close/reopen this object itself, however that
+                // would have a big impact outside ZKDatabase as there are other
+                // objects holding a reference to this object.
+                txnLog = new FileTxnLog(dataDir);
+                snapLog = new FileSnap(snapDir);
 
-        return truncated;
+                return truncated;
+            }
+        } catch (IOException e) {
+            LOG.error("Unable to truncate Txn log", e);
+            return false;
+        }
     }
 
     /**
@@ -509,8 +514,14 @@ public class FileTxnSnapLog {
      * @throws IOException
      */
     public void close() throws IOException {
-        txnLog.close();
-        snapLog.close();
+        if (txnLog != null) {
+            txnLog.close();
+            txnLog = null;
+        }
+        if (snapLog != null) {
+            snapLog.close();
+            snapLog = null;
+        }
     }
 
     @SuppressWarnings("serial")
