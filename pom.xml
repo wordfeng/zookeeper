@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>21</version>
+    <version>23</version>
     <relativePath />
     <!-- no parent resolution -->
   </parent>
@@ -284,7 +284,7 @@
                     <executions>
                         <execution>
                             <id>source-release-assembly-tar-gz</id>
-                            <phase>package</phase>
+                            <phase>initialize</phase>
                             <goals>
                                 <goal>single</goal>
                             </goals>
@@ -325,13 +325,13 @@
     <mockito.version>2.27.0</mockito.version>
     <hamcrest.version>1.3</hamcrest.version>
     <commons-cli.version>1.2</commons-cli.version>
-    <netty.version>4.1.42.Final</netty.version>
+    <netty.version>4.1.45.Final</netty.version>
     <jetty.version>9.4.24.v20191120</jetty.version>
     <jackson.version>2.9.10.2</jackson.version>
     <json.version>1.1.1</json.version>
     <jline.version>2.11</jline.version>
     <snappy.version>1.1.7</snappy.version>
-    <kerby.version>1.1.0</kerby.version>
+    <kerby.version>2.0.0</kerby.version>
     <bouncycastle.version>1.60</bouncycastle.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-lang.version>2.6</commons-lang.version>
@@ -665,6 +665,16 @@
             </execution>
           </executions>
         </plugin>
+        <!-- we don't need this plugin-->
+        <plugin>
+          <artifactId>maven-remote-resources-plugin</artifactId>
+          <executions>
+            <execution>
+               <id>process-resource-bundles</id>
+               <phase>none</phase>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -678,7 +688,7 @@
             <goals>
               <goal>revision</goal>
             </goals>
-            <phase>validate</phase>
+            <phase>generate-resources</phase>
           </execution>
         </executions>
         <configuration>
@@ -855,6 +865,7 @@
             <exclude>zookeeper-contrib-fatjar/src/main/resources/mainClasses</exclude>
             <exclude>zookeeper-contrib-zkperl/Changes</exclude>
             <exclude>zookeeper-contrib-zkperl/MANIFEST</exclude>
+            <exclude>zookeeper-contrib-zkpython/src/test/zoo.cfg</exclude>
             <exclude>zookeeper-contrib-loggraph/src/main/resources/webapp/org/apache/zookeeper/graph/resources/*</exclude>
             <exclude>src/main/resources/webapp/org/apache/zookeeper/graph/resources/*</exclude>
             <exclude>src/main/java/com/nitido/utils/toaster/Toaster.java</exclude>
